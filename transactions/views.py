@@ -13,6 +13,7 @@ class TransactionView(View):
         return render(request, "transactions/transaction.html", context)
 
     def post(self, request):
+        title = request.POST.get("title")
         amount = int(request.POST.get("amount"))
         transfer_from = request.POST.get("transfer_from")
         transfer_to = request.POST.get("transfer_to")
@@ -28,37 +29,37 @@ class TransactionView(View):
         # success_message = messages.error(request, "Transfer successful.") DRY didn't work
 
         if transfer_from == "current" and transfer_to == "savings":
-            transfer(source_account=current_account_id, target_account=savings_account_id, amount=amount)
+            transfer(source_account=current_account_id, target_account=savings_account_id, amount=amount, title=title)
             messages.error(request, "Transfer successful.")
             return redirect("savings_account")
 
         if transfer_from == "current" and transfer_to == "foreign":
-            transfer(source_account=current_account_id, target_account=foreign_account_id, amount=amount)
+            transfer(source_account=current_account_id, target_account=foreign_account_id, amount=amount, title=title)
             messages.error(request, "Transfer successful.")
             return redirect("foreign_account")
 
         if transfer_from == "savings" and transfer_to == "current":
-            transfer(source_account=savings_account_id, target_account=current_account_id, amount=amount)
+            transfer(source_account=savings_account_id, target_account=current_account_id, amount=amount, title=title)
             messages.error(request, "Transfer successful.")
             return redirect("current_account")
 
         if transfer_from == "savings" and transfer_to == "foreign":
-            transfer(source_account=savings_account_id, target_account=foreign_account_id, amount=amount)
+            transfer(source_account=savings_account_id, target_account=foreign_account_id, amount=amount, title=title)
             messages.error(request, "Transfer successful.")
             return redirect("foreign_account")
 
         if transfer_from == "foreign" and transfer_to == "current":
-            transfer(source_account=foreign_account_id, target_account=current_account_id, amount=amount)
+            transfer(source_account=foreign_account_id, target_account=current_account_id, amount=amount, title=title)
             messages.error(request, "Transfer successful.")
             return redirect("current_account")
 
         if transfer_from == "foreign" and transfer_to == "savings":
-            transfer(source_account=foreign_account_id, target_account=savings_account_id, amount=amount)
+            transfer(source_account=foreign_account_id, target_account=savings_account_id, amount=amount, title=title)
             messages.error(request, "Transfer successful.")
             return redirect("savings_account")
 
 
-def transfer(source_account, target_account, amount):
+def transfer(source_account, target_account, amount, title):
     if amount <= 0:
         raise ValueError("Invalid transfer amount")
 
@@ -71,7 +72,7 @@ def transfer(source_account, target_account, amount):
     source_account.save()
     target_account.save()
 
-    Transaction.objects.create(source_account=source_account, target_account=target_account, amount=amount)
+    Transaction.objects.create(source_account=source_account, target_account=target_account, amount=amount, title=title)
 
 
 # def money_exchange(currency_from, currency_to, amount):
@@ -85,3 +86,9 @@ def transfer(source_account, target_account, amount):
 #         result = "{:.2f}".format(result)
 #
 #     return result
+
+class TransactionHistoryView(View):
+    def get(self, request):
+        transactions = Transaction.objects.all()
+        context = {'transactions': transactions}
+        return render(request, "transactions/history.html", context)
